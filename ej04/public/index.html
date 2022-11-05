@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>Menús disponibles:</h3>
+    <div id="menus">
+
+    </div>
+
+    <h3>Añadir menú</h3>
+    <form>
+        <input type="text" name="numero" id="numero" placeholder="Número" /></br>
+        <input type="text" name="pp" id="pp" placeholder="Primer Plato" /></br>
+        <input type="text" name="sp" id="sp" placeholder="Segundo Plato" /></br>
+        <input type="text" name="pos" id="pos" placeholder="Postre" /></br>
+        <input type="text" name="precio" id="precio" placeholder="Precio" /></br>
+        <button onclick="add()">Añadir</button>
+
+        <div id="feedback"></div>
+    </form>
+
+    <script>
+        showMenus()
+        
+        function add() {
+            let menu = {
+                numero: document.getElementById("numero").value,
+                pp: document.getElementById("pp").value,
+                sp: document.getElementById("sp").value,
+                pos: document.getElementById("pos").value,
+                precio: document.getElementById("precio").value,
+            }
+
+            fetch("/api/nuevoMenu", {method: "POST", headers: {"Content-type":"application/json"}, body: JSON.stringify(menu)})
+            .then(res => res.json()). then(res => {
+                if (res.error) {
+                    document.getElementById("feedback").innerHTML = "<p>Error al conectarse a la base de datos: " + res.error + "</p>"
+                } else {
+                    document.getElementById("feedback").innerHTML = "<p>Menú añadido correctamente!</p>"
+                    showMenus()
+                    emptyForm()
+                }
+            })
+        }
+
+        function showMenus() {
+            fetch("/api/menus")
+            .then(res => res.json()). then(res => {
+                if (res.error) {
+                    document.getElementById("feedback").innerHTML = "<p>Error al conectarse a la base de datos: " + res.error + "</p>"
+                } else {
+                    let html = "<table><tr><th>Número</th><th>Primer Plato</th><th>Segundo Plato</th><th>Postre</th><th>Precio</th></tr>"
+
+                    res.results.forEach(menu => {
+                        html += `<tr><td>${menu.numero}</td><td>${menu.pp}</td><td>${menu.sp}</td><td>${menu.pos}</td><td>${menu.precio}</td>`
+                        html += `<td><button onclick="borrar('${menu.numero}')">Borrar</button></td>`
+                        html += "</tr>"
+                    })
+
+                    html += "</table>"
+
+                    document.getElementById("menus").innerHTML = html
+                }
+            })
+        }
+
+        function borrar (num) {
+            let menu = {numero: parseFloat(num)}
+
+            fetch("/api/borrarMenu", {method: "DELETE", headers: {"Content-type":"application/json"}, body: JSON.stringify(menu)})
+            .then(res => res.json()). then(res => {
+                if (res.error) {
+                    document.getElementById("feedback").innerHTML = "<p>Error al conectarse a la base de datos: " + res.error + "</p>"
+                } else {
+                    document.getElementById("feedback").innerHTML = "<p>Menú borrado correctamente!</p>"
+                    showMenus()
+                    emptyForm()
+                }
+            })
+        }
+
+        function emptyForm() {
+            document.getElementById("numero").value = ""
+            document.getElementById("pp").value = ""
+            document.getElementById("sp").value = ""
+            document.getElementById("pos").value = ""
+            document.getElementById("precio").value = ""
+        }
+    </script>
+</body>
+</html>

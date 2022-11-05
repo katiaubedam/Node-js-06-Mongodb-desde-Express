@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body onLoad="render()">
+    <div id="list"></div>
+    <div id="feedback"></div>
+    <script>
+        function render() {
+            fetch("/api/books")
+            .then(res=>res.json())
+            .then(res=>{
+                let html = "<table><tr><th>Título</th><th>Leído</th></tr>"
+
+                res.results.forEach(libro => {
+                    html += `<tr><td>${libro.title}</td><td>${libro.read}</td>`
+                    html += `<td><button ${libro.read? 'disabled' : ''} onclick="read('${libro.title}')">Leer</button></td>`
+                    html += `<td><button onclick="borrar('${libro.title}')">Borrar</button></td>`
+                    html += "</tr>"
+                })
+
+                html += "</table>"
+
+                document.getElementById("list").innerHTML = html
+            })
+        }
+        
+
+        function read(title){
+            fetch(`/api/editBook/${title}`, {method: "PUT"})
+            .then(res=>res.json())
+            .then(res=>{
+                if (res.status === 200) {
+                    document.getElementById("feedback").innerHTML = `<p>${title} modificado correctamente</p>`
+                } else {
+                    document.getElementById("feedback").innerHTML = `<p>Error al modificar la base de datos</p>`
+                }
+                
+            })
+
+            render()
+        }
+
+        function borrar(title){
+            fetch(`/api/deleteBook/${title}`, {method: "DELETE"})
+            .then(res=>res.json())
+            .then(res=>{
+                if (res.status === 200) {
+                    document.getElementById("feedback").innerHTML = `<p>${title} borrado correctamente</p>`
+                } else {
+                    document.getElementById("feedback").innerHTML = `<p>Error al modificar la base de datos</p>`
+                }
+                
+            })
+
+            render()
+        }
+    </script>
+</body>
+</html>
